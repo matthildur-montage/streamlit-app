@@ -130,7 +130,7 @@ else:
             sectors_to_compare = st.multiselect(
                 "Select Sectors to Compare",
                 options=numeric_df["Sector"].tolist(),
-                default=numeric_df["Sector"].iloc[:2].tolist() if len(numeric_df) >= 2 else numeric_df["Sector"].iloc[:1].tolist()
+                default=[]
             )
         
         with col2:
