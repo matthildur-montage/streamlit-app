@@ -110,11 +110,11 @@ def get_companies_by_industry(industry):
     data = []
     for row in rows:
         cols = row.find_all("td")
-        print("Cols: ", cols)
         if len(cols) < 7:
             continue
 
         try:
+            print("Adding data: ", cols[0], cols[1], cols[2])
             data.append({
                 "Ticker": cols[0].text.strip(),
                 "Company": cols[1].text.strip(),
@@ -124,7 +124,8 @@ def get_companies_by_industry(industry):
                 "P/S": cols[5].text.strip(),
                 "Dividend": cols[6].text.strip(),
             })
-        except Exception:
+        except Exception as e:
+            print(f"Error parsing row: {e}")
             continue
 
     return pd.DataFrame(data)
