@@ -88,7 +88,7 @@ def get_companies_by_industry(industry_name):
     from urllib.parse import quote_plus
 
     # Convert industry name to Finviz slug (replace spaces with underscores, lowercase)
-    industry_slug = industry_name.lower().replace(" ", "_")
+    industry_slug = industry_name.lower().replace(" ", "")
     url = f"https://finviz.com/screener.ashx?v=152&f=ind_{industry_slug}"
     
     headers = {
