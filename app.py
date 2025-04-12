@@ -83,6 +83,53 @@ def get_sector_data():
     except Exception as e:
         st.error(f"Error fetching sector data: {e}")
         return pd.DataFrame({"Error": [str(e)]})
+        
+def get_companies_by_industry(industry_name):
+    from urllib.parse import quote_plus
+
+    # Convert industry name to Finviz slug (replace spaces with underscores, lowercase)
+    industry_slug = industry_name.lower().replace(" ", "_")
+    url = f"https://finviz.com/screener.ashx?v=152&f=ind_{industry_slug}"
+    
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+    
+    res = requests.get(url, headers=headers)
+    soup = BeautifulSoup(res.text, "html.parser")
+
+    table = soup.find("table", class_="table-light")
+    if table is None:
+        return pd.DataFrame({"Error": ["Could not find company table."]})
+
+    rows = table.find_all("tr")[1:]
+    data = []
+
+    for row in rows:
+        cols = row.find_all("td")
+        if len(cols) < 10:
+            continue
+        try:
+            ticker = cols[1].text.strip()
+            company = cols[2].text.strip()
+            pe = cols[6].text.strip()
+            ps = cols[7].text.strip()
+            pb = cols[8].text.strip()
+            dividend = cols[9].text.strip()
+
+            data.append({
+                "Ticker": ticker,
+                "Company": company,
+                "P/E": pe,
+                "P/S": ps,
+                "P/B": pb,
+                "Dividend": dividend
+            })
+        except:
+            continue
+
+    return pd.DataFrame(data)
+
 
 # Main app
 st.title("US Stock Market Sector Multiples")
@@ -161,6 +208,34 @@ else:
                 st.warning(f"No valid numeric data available for {metric_to_plot} in the selected sectors")
         else:
             st.info("Please select at least one sector to visualize")
+
+    if sector_filter != "All":
+        st.subheader(f"Top Companies in {sector_filter}")
+
+        with st.spinner("Fetching company data..."):
+            company_df = get_companies_by_industry(sector_filter)
+        
+        if "Error" in company_df.columns:
+            st.warning("Company data could not be loaded.")
+        else:
+            for col in ["P/E", "P/S", "P/B", "Dividend"]:
+                company_df[col] = (
+                    company_df[col]
+                    .str.replace(",", "", regex=False)
+                    .str.replace("%", "", regex=False)
+                    .replace("N/A", None)
+                )
+                company_df[col] = pd.to_numeric(company_df[col], errors='coerce')
+
+            metric = st.selectbox("Metric to visualize for companies", ["P/E", "P/S", "P/B", "Dividend"])
+            
+            top_companies = company_df.sort_values(by=metric, ascending=False).dropna(subset=[metric]).head(10)
+
+            st.write(f"Top 10 companies by {metric}")
+            st.dataframe(top_companies, use_container_width=True)
+
+            st.bar_chart(data=top_companies.set_index("Ticker")[metric], use_container_width=True)
+
             
     # Add some explanations
     st.markdown("""
