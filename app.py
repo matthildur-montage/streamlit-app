@@ -85,9 +85,7 @@ def get_sector_data():
         return pd.DataFrame({"Error": [str(e)]})
         
 def get_companies_by_industry(industry_name):
-    industry_slug = industry_slug_map.get(industry_name)
-    if not industry_slug:
-        return pd.DataFrame({"Error": [f"No Finviz slug mapping for: {industry_name}"]})
+    industry_slug = industry_name.lower().replace(" ", "_")
 
     url = f"https://finviz.com/screener.ashx?v=152&f={industry_slug}&c=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15"
 
