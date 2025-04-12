@@ -98,7 +98,7 @@ def get_companies_by_industry(industry_name):
         return pd.DataFrame({"Error": [f"Failed to fetch Finviz page (HTTP {res.status_code})"]})
 
     # DEBUG: Save the HTML to inspect it
-    st.code(res.text[:1000])  # Show a preview of HTML
+    st.code(res.text)  # Show a preview of HTML
 
 
     soup = BeautifulSoup(res.text, "html.parser")
