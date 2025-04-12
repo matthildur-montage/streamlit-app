@@ -204,12 +204,50 @@ else:
                 comparison_table = comparison_df[["Sector", metric_to_plot]].copy()
                 comparison_table[metric_to_plot] = comparison_table[metric_to_plot].round(2)
                 st.dataframe(comparison_table.reset_index(drop=True), use_container_width=True, hide_index=True)
+                
+                # Show top companies for each selected sector
+                st.subheader("Top Companies in Selected Sectors")
+                
+                # Create tabs for each selected sector
+                if len(sectors_to_compare) > 0:
+                    tabs = st.tabs(sectors_to_compare)
+                    
+                    for i, sector in enumerate(sectors_to_compare):
+                        with tabs[i]:
+                            with st.spinner(f"Fetching company data for {sector}..."):
+                                company_df = get_companies_by_industry(sector)
+                            
+                            if "Error" in company_df.columns:
+                                st.warning(f"Company data for {sector} could not be loaded.")
+                            else:
+                                # Process the company data
+                                for col in ["P/E", "P/S", "P/B", "Dividend"]:
+                                    company_df[col] = (
+                                        company_df[col]
+                                        .str.replace(",", "", regex=False)
+                                        .str.replace("%", "", regex=False)
+                                        .replace("N/A", None)
+                                    )
+                                    company_df[col] = pd.to_numeric(company_df[col], errors='coerce')
+                                
+                                # Use the same metric that was selected for sector comparison
+                                top_companies = company_df.sort_values(by=metric_to_plot, ascending=False).dropna(subset=[metric_to_plot]).head(10)
+                                
+                                if not top_companies.empty:
+                                    st.write(f"Top 10 companies by {metric_to_plot}")
+                                    st.dataframe(top_companies, use_container_width=True, hide_index=True)
+                                    
+                                    st.bar_chart(data=top_companies.set_index("Ticker")[metric_to_plot], use_container_width=True)
+                                else:
+                                    st.warning(f"No valid company data available for {sector}")
             else:
                 st.warning(f"No valid numeric data available for {metric_to_plot} in the selected sectors")
         else:
             st.info("Please select at least one sector to visualize")
 
-    if sector_filter != "All":
+    # Only show the single sector company view if we're filtering by a specific sector
+    # and not using the multi-sector comparison
+    if sector_filter != "All" and not sectors_to_compare:
         st.subheader(f"Top Companies in {sector_filter}")
 
         with st.spinner("Fetching company data..."):
