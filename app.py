@@ -138,7 +138,6 @@ def get_companies_by_industry(industry):
 
 
 
-
 # Main app
 st.title("US Stock Market Sector Multiples")
 st.write("This app shows valuation multiples for different market sectors.")
@@ -260,27 +259,47 @@ else:
 
         with st.spinner("Fetching company data..."):
             company_df = get_companies_by_industry(sector_filter)
-        
-        if "Error" in company_df.columns:
+
+        if "Error" in company_df.columns or company_df.empty:
             st.warning("Company data could not be loaded.")
         else:
-            for col in ["P/E", "P/S", "P/B", "Dividend"]:
-                company_df[col] = (
-                    company_df[col]
-                    .str.replace(",", "", regex=False)
-                    .str.replace("%", "", regex=False)
-                    .replace("N/A", None)
+            # Convert numeric fields
+            for col in ["P/E", "Fwd P/E", "PEG", "P/S", "Dividend"]:
+                if col in company_df.columns:
+                    company_df[col] = (
+                        company_df[col]
+                        .str.replace(",", "", regex=False)
+                        .str.replace("%", "", regex=False)
+                        .replace("N/A", None)
+                        .replace("-", None)
+                    )
+                    company_df[col] = pd.to_numeric(company_df[col], errors='coerce')
+
+            metric = st.selectbox(
+                "Metric to visualize for companies",
+                ["P/E", "Fwd P/E", "PEG", "P/S", "Dividend"]
+            )
+
+            if metric in company_df.columns:
+                top_companies = (
+                    company_df
+                    .sort_values(by=metric, ascending=False)
+                    .dropna(subset=[metric])
+                    .head(10)
                 )
-                company_df[col] = pd.to_numeric(company_df[col], errors='coerce')
 
-            metric = st.selectbox("Metric to visualize for companies", ["P/E", "P/S", "P/B", "Dividend"])
-            
-            top_companies = company_df.sort_values(by=metric, ascending=False).dropna(subset=[metric]).head(10)
+                if not top_companies.empty:
+                    st.write(f"Top 10 companies by {metric}")
+                    st.dataframe(top_companies, use_container_width=True)
+                    st.bar_chart(
+                        data=top_companies.set_index("Ticker")[metric],
+                        use_container_width=True
+                    )
+                else:
+                    st.warning(f"No data available for metric: {metric}")
+            else:
+                st.warning(f"Selected metric '{metric}' not found in data.")
 
-            st.write(f"Top 10 companies by {metric}")
-            st.dataframe(top_companies, use_container_width=True)
-
-            st.bar_chart(data=top_companies.set_index("Ticker")[metric], use_container_width=True)
 
             
     # Add some explanations
