@@ -114,7 +114,8 @@ def get_companies_by_industry(industry):
             continue
 
         try:
-            print("Adding data: ", cols[0], cols[1], cols[2])
+            print("Should be ticker: ", cols[0].text.strip())
+            print("Should be company: ", cols[1].text.strip())
             data.append({
                 "Ticker": cols[0].text.strip(),
                 "Company": cols[1].text.strip(),
