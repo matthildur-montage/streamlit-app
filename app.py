@@ -103,7 +103,7 @@ def get_companies_by_industry(industry):
     soup = BeautifulSoup(res.text, "html.parser")
     table = soup.find("table", class_="screener_table")
     if table is None:
-        return pd.DataFrame({"Error": ["❌ Could not find screener_table in HTML."]})
+        return pd.DataFrame({"Error": [" Could not find screener_table in HTML."]})
 
     rows = table.find_all("tr")[1:]  # skip header
 
@@ -166,7 +166,9 @@ else:
         
         # Convert metrics to numeric values for plotting
         numeric_df = df.copy()
-        for col in ["P/E", "P/S", "P/B", "Dividend"]:
+        # Define sector metrics
+        sector_metrics = ["P/E", "P/S", "P/B", "Dividend"]
+        for col in sector_metrics:
             if col in numeric_df.columns:
                 numeric_df[col] = (
                     numeric_df[col]
@@ -189,8 +191,8 @@ else:
             )
         
         with col2:
-            # Select metric to visualize
-            metric_to_plot = st.selectbox("Select Metric to Compare", ["P/E", "Fwd P/E", "PEG", "P/S", "Dividend"])
+            # Select metric to visualize - only show metrics available in sector data
+            metric_to_plot = st.selectbox("Select Metric to Compare", sector_metrics)
         
         # Create bar chart for selected sectors and metric
         if sectors_to_compare:
@@ -229,7 +231,8 @@ else:
                                 st.warning(f"Company data for {sector} could not be loaded.")
                             else:
                                 # Process the company data
-                                for col in ["P/E", "Fwd P/E", "PEG", "P/S", "Dividend"]:
+                                company_metrics = ["P/E", "Fwd P/E", "PEG", "P/S", "Dividend"]
+                                for col in company_metrics:
                                     if col in company_df.columns:
                                         company_df[col] = (
                                             company_df[col]
@@ -239,16 +242,34 @@ else:
                                         )
                                         company_df[col] = pd.to_numeric(company_df[col], errors='coerce')
                                 
-                                # Use the same metric that was selected for sector comparison
-                                top_companies = company_df.sort_values(by=metric_to_plot, ascending=False).dropna(subset=[metric_to_plot]).head(10)
+                                # Use the same metric that was selected for sector comparison if available
+                                # Otherwise, default to P/E or the first available metric
+                                company_metric = metric_to_plot
+                                if metric_to_plot not in company_df.columns or metric_to_plot == "P/B":
+                                    # P/B is not available in company data, use P/S instead
+                                    if metric_to_plot == "P/B" and "P/S" in company_df.columns:
+                                        company_metric = "P/S"
+                                        st.info(f"P/B ratio is not available for companies. Showing P/S ratio instead.")
+                                    else:
+                                        # Find the first available metric
+                                        for m in company_metrics:
+                                            if m in company_df.columns:
+                                                company_metric = m
+                                                st.info(f"{metric_to_plot} is not available for companies. Showing {company_metric} instead.")
+                                                break
                                 
-                                if not top_companies.empty:
-                                    st.write(f"Top 10 companies by {metric_to_plot}")
-                                    st.dataframe(top_companies, use_container_width=True, hide_index=True)
+                                if company_metric in company_df.columns:
+                                    top_companies = company_df.sort_values(by=company_metric, ascending=False).dropna(subset=[company_metric]).head(10)
                                     
-                                    st.bar_chart(data=top_companies.set_index("Ticker")[metric_to_plot], use_container_width=True)
+                                    if not top_companies.empty:
+                                        st.write(f"Top 10 companies by {company_metric}")
+                                        st.dataframe(top_companies, use_container_width=True, hide_index=True)
+                                        
+                                        st.bar_chart(data=top_companies.set_index("Ticker")[company_metric], use_container_width=True)
+                                    else:
+                                        st.warning(f"No valid company data available for {sector} with {company_metric} values")
                                 else:
-                                    st.warning(f"No valid company data available for {sector}")
+                                    st.warning(f"No valid metrics available for companies in {sector}")
             else:
                 st.warning(f"No valid numeric data available for {metric_to_plot} in the selected sectors")
         else:
@@ -266,7 +287,8 @@ else:
             st.warning("Company data could not be loaded.")
         else:
             # Convert numeric fields
-            for col in ["P/E", "Fwd P/E", "PEG", "P/S", "Dividend"]:
+            company_metrics = ["P/E", "Fwd P/E", "PEG", "P/S", "Dividend"]
+            for col in company_metrics:
                 if col in company_df.columns:
                     company_df[col] = (
                         company_df[col]
@@ -279,7 +301,7 @@ else:
 
             metric = st.selectbox(
                 "Metric to visualize for companies",
-                ["P/E", "Fwd P/E", "PEG", "P/S", "Dividend"]
+                company_metrics
             )
 
             if metric in company_df.columns:
@@ -300,7 +322,12 @@ else:
                 else:
                     st.warning(f"No data available for metric: {metric}")
             else:
-                st.warning(f"Selected metric '{metric}' not found in data.")
+                st.warning(f"Selected metric '{metric}' not found in data. Please select a different metric.")
+                available_metrics = [m for m in company_metrics if m in company_df.columns]
+                if available_metrics:
+                    st.info(f"Available metrics for this sector are: {', '.join(available_metrics)}")
+                else:
+                    st.info("No metrics available for this sector.")
 
 
             
