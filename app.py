@@ -167,14 +167,15 @@ else:
         # Convert metrics to numeric values for plotting
         numeric_df = df.copy()
         for col in ["P/E", "P/S", "P/B", "Dividend"]:
-            numeric_df[col] = (
-                numeric_df[col]
-                .str.replace("B", "", regex=False)
-                .str.replace("M", "", regex=False)
-                .str.replace("%", "", regex=False)
-                .replace("N/A", None)
-            )
-            numeric_df[col] = pd.to_numeric(numeric_df[col], errors="coerce")
+            if col in numeric_df.columns:
+                numeric_df[col] = (
+                    numeric_df[col]
+                    .str.replace("B", "", regex=False)
+                    .str.replace("M", "", regex=False)
+                    .str.replace("%", "", regex=False)
+                    .replace("N/A", None)
+                )
+                numeric_df[col] = pd.to_numeric(numeric_df[col], errors="coerce")
 
         # Create two columns for the inputs
         col1, col2 = st.columns(2)
@@ -189,7 +190,7 @@ else:
         
         with col2:
             # Select metric to visualize
-            metric_to_plot = st.selectbox("Select Metric to Compare", ["P/E", "P/S", "P/B", "Dividend"])
+            metric_to_plot = st.selectbox("Select Metric to Compare", ["P/E", "Fwd P/E", "PEG", "P/S", "Dividend"])
         
         # Create bar chart for selected sectors and metric
         if sectors_to_compare:
@@ -228,14 +229,15 @@ else:
                                 st.warning(f"Company data for {sector} could not be loaded.")
                             else:
                                 # Process the company data
-                                for col in ["P/E", "P/S", "P/B", "Dividend"]:
-                                    company_df[col] = (
-                                        company_df[col]
-                                        .str.replace(",", "", regex=False)
-                                        .str.replace("%", "", regex=False)
-                                        .replace("N/A", None)
-                                    )
-                                    company_df[col] = pd.to_numeric(company_df[col], errors='coerce')
+                                for col in ["P/E", "Fwd P/E", "PEG", "P/S", "Dividend"]:
+                                    if col in company_df.columns:
+                                        company_df[col] = (
+                                            company_df[col]
+                                            .str.replace(",", "", regex=False)
+                                            .str.replace("%", "", regex=False)
+                                            .replace("N/A", None)
+                                        )
+                                        company_df[col] = pd.to_numeric(company_df[col], errors='coerce')
                                 
                                 # Use the same metric that was selected for sector comparison
                                 top_companies = company_df.sort_values(by=metric_to_plot, ascending=False).dropna(subset=[metric_to_plot]).head(10)
@@ -306,7 +308,8 @@ else:
     st.markdown("""
     ### Valuation Metrics Explained
     - **P/E Ratio**: Price-to-Earnings ratio - how much investors are willing to pay per dollar of earnings
+    - **Fwd P/E**: Forward Price-to-Earnings ratio - based on forecasted earnings for the next 12 months
+    - **PEG**: Price/Earnings to Growth ratio - P/E ratio divided by earnings growth rate
     - **P/S Ratio**: Price-to-Sales ratio - company's market cap divided by its revenue
-    - **P/B Ratio**: Price-to-Book ratio - market value relative to book value
     - **Dividend**: Dividend yield - annual dividends relative to share price
     """)
