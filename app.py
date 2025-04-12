@@ -89,7 +89,7 @@ def get_companies_by_industry(industry):
     from bs4 import BeautifulSoup
     industry_slug = industry.lower().replace(" ", "")
 
-    url = f"https://finviz.com/screener.ashx?v=152&f={industry_slug}&c=1,2,3,4,5,6,7,9,10,13"
+    url = f"https://finviz.com/screener.ashx?v=152&f={industry_slug}&c=1,2,3,4,5,6,7,9,10,75"
     headers = {
         "User-Agent": "Mozilla/5.0"
     }
