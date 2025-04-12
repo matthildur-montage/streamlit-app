@@ -116,6 +116,11 @@ def get_companies_by_industry(industry):
         try:
             print("Should be ticker: ", cols[0].text.strip())
             print("Should be company: ", cols[1].text.strip())
+            print("Should be p/e: ", cols[2].text.strip())
+            print("Should be fwd p/e: ", cols[3].text.strip())
+            print("Should be peg: ", cols[4].text.strip())
+            print("Should be p/s: ", cols[5].text.strip())
+            print("Should be dividend: ", cols[6].text.strip())
             data.append({
                 "Ticker": cols[0].text.strip(),
                 "Company": cols[1].text.strip(),
