@@ -84,11 +84,12 @@ def get_sector_data():
         st.error(f"Error fetching sector data: {e}")
         return pd.DataFrame({"Error": [str(e)]})
         
-def get_companies_by_industry(industry_name):
-    industry_slug = industry_name.lower().replace(" ", "_")
+def get_companies_by_industry(industry):
+    import requests
+    from bs4 import BeautifulSoup
+    industry_slug = industry.lower().replace(" ", "")
 
-    url = f"https://finviz.com/screener.ashx?v=152&f={industry_slug}&c=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15"
-
+    url = f"https://finviz.com/screener.ashx?v=152&f={industry_slug}&c=1,2,3,4,5,6,7,9,10,13"
     headers = {
         "User-Agent": "Mozilla/5.0"
     }
@@ -97,16 +98,13 @@ def get_companies_by_industry(industry_name):
     if res.status_code != 200:
         return pd.DataFrame({"Error": [f"Failed to fetch Finviz page (HTTP {res.status_code})"]})
 
-    # DEBUG: Save the HTML to inspect it
-    st.code(res.text)  # Show a preview of HTML
-
-
     soup = BeautifulSoup(res.text, "html.parser")
-    table = soup.find("table", class_="table-light")
-    if table is None:
-        return pd.DataFrame({"Error": ["Could not find company table."]})
 
-    rows = table.find_all("tr")[1:]  # skip header
+    table = soup.find("table", class_="screener_table")
+    if table is None:
+        return pd.DataFrame({"Error": ["❌ Could not find screener_table in HTML."]})
+
+    rows = table.find_all("tr")[1:]  # Skip header
 
     data = []
     for row in rows:
@@ -115,25 +113,22 @@ def get_companies_by_industry(industry_name):
             continue
         try:
             data.append({
-                "Ticker": cols[1].text.strip(),
-                "Company": cols[2].text.strip(),
-                "Sector": cols[3].text.strip(),
-                "Industry": cols[4].text.strip(),
-                "Country": cols[5].text.strip(),
-                "Market Cap": cols[6].text.strip(),
-                "P/E": cols[7].text.strip(),
-                "P/S": cols[8].text.strip(),
-                "P/B": cols[9].text.strip(),
-                "Dividend": cols[10].text.strip(),
-                "Sales": cols[11].text.strip(),
-                "Volume": cols[12].text.strip(),
-                "Price": cols[13].text.strip(),
-                "Change": cols[14].text.strip(),
+                "Ticker": cols[0].text.strip(),
+                "Company": cols[1].text.strip(),
+                "Sector": cols[2].text.strip(),
+                "Industry": cols[3].text.strip(),
+                "Country": cols[4].text.strip(),
+                "Market Cap": cols[5].text.strip(),
+                "P/E": cols[6].text.strip(),
+                "P/S": cols[9].text.strip(),
+                "P/B": cols[10].text.strip(),
+                "Dividend": cols[13].text.strip(),
             })
         except Exception as e:
             continue
 
     return pd.DataFrame(data)
+
 
 
 # Main app
