@@ -94,6 +94,7 @@ def get_companies_by_industry(industry):
     headers = {
         "User-Agent": "Mozilla/5.0"
     }
+    print("URL", url)
 
     res = requests.get(url, headers=headers)
     if res.status_code != 200:
@@ -109,6 +110,7 @@ def get_companies_by_industry(industry):
     data = []
     for row in rows:
         cols = row.find_all("td")
+        print("Cols: ", cols)
         if len(cols) < 7:
             continue
 
