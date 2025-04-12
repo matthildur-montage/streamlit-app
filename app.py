@@ -127,7 +127,10 @@ def get_companies_by_industry(industry):
         except Exception as e:
             continue
 
-    return pd.DataFrame(data)
+    data = pd.DataFrame(data)
+    print(data.columns)
+    print(data.head(2))
+    return data
 
 
 
