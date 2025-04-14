@@ -3,10 +3,39 @@ import asyncio
 from playwright.async_api import async_playwright
 import time
 import logging
+import os
+import subprocess
+import sys
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+def ensure_playwright_browsers():
+    """Ensure Playwright browsers are installed, attempt to install if missing."""
+    try:
+        logger.info("Checking Playwright browser installation...")
+        # Check if browser is already installed
+        result = subprocess.run(
+            [sys.executable, "-m", "playwright", "install", "--help"],
+            capture_output=True,
+            text=True
+        )
+        
+        if "chromium" not in result.stdout.lower():
+            logger.info("Installing Playwright browsers...")
+            subprocess.run(
+                [sys.executable, "-m", "playwright", "install", "chromium"],
+                check=True
+            )
+            logger.info("Playwright browsers installed successfully")
+        else:
+            logger.info("Playwright browsers already installed")
+            
+        return True
+    except Exception as e:
+        logger.error(f"Failed to install Playwright browsers: {e}")
+        return False
 
 async def get_companies_by_industry_async(industry, max_pages=5):
     """
@@ -26,9 +55,20 @@ async def get_companies_by_industry_async(industry, max_pages=5):
     all_data = []
     
     try:
+        if not ensure_playwright_browsers():
+            return pd.DataFrame({"Error": ["Failed to install Playwright browsers"]})
+        
         async with async_playwright() as p:
-            # Launch browser with stealth mode
-            browser = await p.chromium.launch(headless=True)
+            # Launch browser with stealth mode and cloud-friendly options
+            browser = await p.chromium.launch(
+                headless=True,
+                args=[
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox'
+                ]
+            )
             context = await browser.new_context(
                 viewport={"width": 1920, "height": 1080},
                 user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
