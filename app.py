@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 import time
-from finviz_playwright import get_companies_by_industry
+from finviz_playwright import get_companies_by_industry, ensure_playwright_browsers_installed
 
 @st.cache_data
 def get_sector_data():
@@ -171,6 +171,7 @@ else:
                     for i, sector in enumerate(sectors_to_compare):
                         with tabs[i]:
                             with st.spinner(f"Fetching company data for {sector}..."):
+                                ensure_playwright_browsers_installed()
                                 company_df = get_companies_by_industry(sector)
                             
                             if "Error" in company_df.columns:
