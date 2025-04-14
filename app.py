@@ -90,7 +90,7 @@ def get_sector_data():
         st.error(f"Error fetching sector data: {e}")
         return pd.DataFrame({"Error": [str(e)]})
         
-def get_companies_by_industry(industry, max_pages=100):
+def get_companies_by_industry(industry, max_pages=5):
     import requests
     from bs4 import BeautifulSoup
     import pandas as pd
@@ -304,6 +304,7 @@ else:
                             
                             if "Error" in company_df.columns:
                                 st.warning(f"Company data for {sector} could not be loaded.")
+                                print(company_df["Error"])
                             else:
                                 # Process the company data
                                 company_metrics = ["Market cap", "P/E", "Fwd P/E", "P/S", "P/B", "Dividend", "Sales 5Y growth", "Sales"]
