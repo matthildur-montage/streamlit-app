@@ -95,7 +95,7 @@ def get_companies_by_industry(industry):
     from bs4 import BeautifulSoup
     import pandas as pd
 
-    industry_slug = f"ind_{industry.lower().replace(' ', '')}"
+    industry_slug = f"ind_{industry.lower().replace(' ', '').replace('-','')}"
     url = f"https://finviz.com/screener.ashx?v=152&f={industry_slug}&c=1,2,6,7,8,10,11,75,21,82,39,40,41,63"
     headers = {
         "User-Agent": "Mozilla/5.0"
