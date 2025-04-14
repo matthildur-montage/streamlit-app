@@ -90,72 +90,133 @@ def get_sector_data():
         st.error(f"Error fetching sector data: {e}")
         return pd.DataFrame({"Error": [str(e)]})
         
-def get_companies_by_industry(industry):
+def get_companies_by_industry(industry, max_pages=5):
     import requests
     from bs4 import BeautifulSoup
     import pandas as pd
+    import time
 
     industry_slug = f"ind_{industry.lower().replace(' ', '').replace('-','').replace('&','')}"
-    url = f"https://finviz.com/screener.ashx?v=152&f={industry_slug}&c=1,2,6,7,8,10,11,75,21,82,39,40,41,63"
+    base_url = f"https://finviz.com/screener.ashx?v=152&f={industry_slug}&c=1,2,6,7,8,10,11,75,21,82,39,40,41,63"
     headers = {
         "User-Agent": "Mozilla/5.0"
     }
-    print("URL", url)
-
-    res = requests.get(url, headers=headers)
-    if res.status_code != 200:
-        return pd.DataFrame({"Error": [f"Failed to fetch Finviz page (HTTP {res.status_code})"]})
-
-    soup = BeautifulSoup(res.text, "html.parser")
-    table = soup.find("table", class_="screener_table")
-    if table is None:
-        return pd.DataFrame({"Error": [" Could not find screener_table in HTML."]})
-
-    rows = table.find_all("tr")[1:]  # skip header
-
-    data = []
-    for row in rows:
-        cols = row.find_all("td")
-        if len(cols) < 13:
-            continue
-
-        try:
-            ticker = cols[0].text.strip() if len(cols) > 0 else "Unknown"
-            company = cols[1].text.strip() if len(cols) > 1 else "Unknown"
-            marketcap = cols[2].text.strip() if len(cols) > 2 else "N/A"
-            pe = cols[3].text.strip() if len(cols) > 3 else "N/A"
-            fwd_pe = cols[4].text.strip() if len(cols) > 4 else "N/A"
-            ps = cols[5].text.strip() if len(cols) > 5 else "N/A"
-            pb = cols[6].text.strip() if len(cols) > 6 else "N/A"
-            dividend = cols[7].text.strip() if len(cols) > 7 else "N/A"
-            sales_growth = cols[8].text.strip() if len(cols) > 8 else "N/A"
-            sales = cols[9].text.strip() if len(cols) > 9 else "N/A"
-            gm = cols[10].text.strip() if len(cols) > 10 else "N/A"
-            opm = cols[11].text.strip() if len(cols) > 11 else "N/A"
-            pm = cols[12].text.strip() if len(cols) > 12 else "N/A"
-            avg_volume = cols[13].text.strip() if len(cols) > 13 else "N/A"
-
-            data.append({
-                "Ticker": ticker,
-                "Company": company,
-                "Market cap": marketcap,
-                "P/E": pe,
-                "Fwd P/E": fwd_pe,
-                "P/S": ps,
-                "P/B": pb,
-                "Dividend": dividend,
-                "Sales 5Y growth": sales_growth,
-                "Sales": sales,
-                "Gross Margin": gm,
-                "Operating Margin": opm,
-                "Profit Margin": pm,
-                "Avg. volume": avg_volume
-            })
-        except Exception as e:
-            print(f"Error parsing row: {e}")
-            continue
-
-    return pd.DataFrame(data)
+    
+    all_data = []
+    page = 1
+    
+    while page <= max_pages:
+        # Calculate the starting row for the current page (Finviz uses 1-based indexing)
+        # First page starts at row 1, second page at row 21, etc.
+        start_row = (page - 1) * 20 + 1
+        
+        # Only add the row parameter if we're not on the first page
+        current_url = base_url if page == 1 else f"{base_url}&r={start_row}"
+        
+        print(f"Fetching page {page}, URL: {current_url}")
+        
+        # Add a small delay to avoid rate limiting
+        if page > 1:
+            time.sleep(0.5)
+        
+        res = requests.get(current_url, headers=headers)
+        if res.status_code != 200:
+            if page == 1:  # If we fail on the first page, return an error
+                return pd.DataFrame({"Error": [f"Failed to fetch Finviz page (HTTP {res.status_code})"]})
+            else:  # If we fail after the first page, just stop and return what we have
+                break
+        
+        soup = BeautifulSoup(res.text, "html.parser")
+        table = soup.find("table", class_="screener_table")
+        if table is None:
+            if page == 1:  # If we can't find the table on the first page, return an error
+                return pd.DataFrame({"Error": [" Could not find screener_table in HTML."]})
+            else:  # If we can't find the table after the first page, just stop and return what we have
+                break
+        
+        rows = table.find_all("tr")[1:]  # skip header
+        
+        # If no rows are found, we've reached the end of the results
+        if not rows:
+            break
+        
+        page_data = []
+        for row in rows:
+            cols = row.find_all("td")
+            if len(cols) < 13:
+                continue
+            
+            try:
+                ticker = cols[0].text.strip() if len(cols) > 0 else "Unknown"
+                company = cols[1].text.strip() if len(cols) > 1 else "Unknown"
+                marketcap = cols[2].text.strip() if len(cols) > 2 else "N/A"
+                pe = cols[3].text.strip() if len(cols) > 3 else "N/A"
+                fwd_pe = cols[4].text.strip() if len(cols) > 4 else "N/A"
+                ps = cols[5].text.strip() if len(cols) > 5 else "N/A"
+                pb = cols[6].text.strip() if len(cols) > 6 else "N/A"
+                dividend = cols[7].text.strip() if len(cols) > 7 else "N/A"
+                sales_growth = cols[8].text.strip() if len(cols) > 8 else "N/A"
+                sales = cols[9].text.strip() if len(cols) > 9 else "N/A"
+                gm = cols[10].text.strip() if len(cols) > 10 else "N/A"
+                opm = cols[11].text.strip() if len(cols) > 11 else "N/A"
+                pm = cols[12].text.strip() if len(cols) > 12 else "N/A"
+                avg_volume = cols[13].text.strip() if len(cols) > 13 else "N/A"
+                
+                page_data.append({
+                    "Ticker": ticker,
+                    "Company": company,
+                    "Market cap": marketcap,
+                    "P/E": pe,
+                    "Fwd P/E": fwd_pe,
+                    "P/S": ps,
+                    "P/B": pb,
+                    "Dividend": dividend,
+                    "Sales 5Y growth": sales_growth,
+                    "Sales": sales,
+                    "Gross Margin": gm,
+                    "Operating Margin": opm,
+                    "Profit Margin": pm,
+                    "Avg. volume": avg_volume
+                })
+            except Exception as e:
+                print(f"Error parsing row: {e}")
+                continue
+        
+        # If we didn't get any data on this page, we've reached the end
+        if not page_data:
+            break
+            
+        all_data.extend(page_data)
+        
+        # Check if there are more pages by looking for pagination links
+        # The pagination is in a td with id="screener_pagination"
+        pagination = soup.find("td", id="screener_pagination")
+        if pagination:
+            # Look for links to pages beyond our current page
+            next_page_exists = False
+            page_links = pagination.find_all("a", class_="screener-pages")
+            for link in page_links:
+                try:
+                    page_num = int(link.text.strip())
+                    if page_num > page:
+                        next_page_exists = True
+                        break
+                except (ValueError, AttributeError):
+                    # Skip links that don't have a page number (like "next" arrows)
+                    continue
+            
+            if not next_page_exists:
+                break
+        else:
+            # No pagination found, so we're done
+            break
+            
+        page += 1
+    
+    if not all_data:
+        return pd.DataFrame({"Error": ["No data found for this industry"]})
+        
+    return pd.DataFrame(all_data)
 
 
 # Main app
