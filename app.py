@@ -108,12 +108,9 @@ def get_companies_by_industry(industry, max_pages=5):
         # Calculate the starting row for the current page (Finviz uses 1-based indexing)
         # First page starts at row 1, second page at row 21, etc.
         start_row = (page - 1) * 20 + 1
-        print("Starting at row ", start_row)
         
         # Only add the row parameter if we're not on the first page
         current_url = base_url if page == 1 else f"{base_url}&r={start_row}"
-        
-        print(f"Fetching page {page}, URL: {current_url}")
         
         # Add a small delay to avoid rate limiting
         if page > 1:
@@ -122,7 +119,7 @@ def get_companies_by_industry(industry, max_pages=5):
         res = requests.get(current_url, headers=headers)
         if res.status_code != 200:
             if page == 1:  # If we fail on the first page, return an error
-                print("Failed to fetch Finviz page")
+                st.warning(f"Failed to fetch page: ", current_url)
                 return pd.DataFrame({"Error": [f"Failed to fetch Finviz page (HTTP {res.status_code})"]})
             else:  # If we fail after the first page, just stop and return what we have
                 break
