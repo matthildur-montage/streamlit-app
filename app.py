@@ -119,7 +119,7 @@ def get_companies_by_industry(industry, max_pages=5):
         res = requests.get(current_url, headers=headers)
         if res.status_code != 200:
             if page == 1:  # If we fail on the first page, return an error
-                st.warning(f"Failed to fetch page: ", current_url)
+                st.warning(f"Failed to fetch page: {current_url}")
                 return pd.DataFrame({"Error": [f"Failed to fetch Finviz page (HTTP {res.status_code})"]})
             else:  # If we fail after the first page, just stop and return what we have
                 break
