@@ -67,9 +67,9 @@ def get_sector_data():
                 data.append({
                     "Sector": sector,
                     "Market cap": pe,
-                    "P/S": ps,
-                    "P/B": pb,
-                    "Dividend": div,
+                    "P/E": ps,
+                    "Dividend": pb,
+                    "Avg. volume": div,
                 })
             except Exception as e:
                 st.warning(f"Error parsing row: {e}")
