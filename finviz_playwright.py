@@ -7,6 +7,15 @@ import os
 import subprocess
 import sys
 
+def ensure_playwright_browsers_installed():
+    browser_path = "/home/appuser/.cache/ms-playwright"
+    if not os.path.exists(browser_path):
+        try:
+            subprocess.run(["playwright", "install", "chromium"], check=True)
+        except Exception as e:
+            import streamlit as st
+            st.error(f"Could not install Chromium for Playwright: {e}")
+
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
