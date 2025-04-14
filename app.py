@@ -47,7 +47,6 @@ def get_sector_data():
             return pd.DataFrame({"Error": ["Table not found on page"]})
         
         rows = table.find_all("tr")[1:]  # Skip header row
-        print(f"DEBUG: Found {len(rows)} rows in table")
         data = []
         for row in rows:
             cols = row.find_all("td")
@@ -122,6 +121,7 @@ def get_companies_by_industry(industry, max_pages=5):
         res = requests.get(current_url, headers=headers)
         if res.status_code != 200:
             if page == 1:  # If we fail on the first page, return an error
+                print("Failed to fetch Finviz page")
                 return pd.DataFrame({"Error": [f"Failed to fetch Finviz page (HTTP {res.status_code})"]})
             else:  # If we fail after the first page, just stop and return what we have
                 break
@@ -130,6 +130,7 @@ def get_companies_by_industry(industry, max_pages=5):
         table = soup.find("table", class_="screener_table")
         if table is None:
             if page == 1:  # If we can't find the table on the first page, return an error
+                print("Could not find screener_table in HTML")
                 return pd.DataFrame({"Error": [" Could not find screener_table in HTML."]})
             else:  # If we can't find the table after the first page, just stop and return what we have
                 break
