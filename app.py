@@ -174,20 +174,14 @@ else:
     # Display the data
     st.dataframe(df.reset_index(drop=True), use_container_width=True, hide_index=True)
     
-    # Optional: Add filtering
     if not df.empty:
-        #sector_filter = st.selectbox("Filter by Sector", ["All"] + df["Sector"].tolist())
-        #if sector_filter != "All":
-        #    filtered_df = df[df["Sector"] == sector_filter]
-        #    st.dataframe(filtered_df.reset_index(drop=True), use_container_width=True, hide_index=True)
-        
         # Add visualization section
         st.subheader("Sector Comparison Visualization")
         
         # Convert metrics to numeric values for plotting
         numeric_df = df.copy()
         # Define sector metrics
-        sector_metrics = ["P/E", "P/S", "P/B", "Dividend", "Market cap", "Sales 5Y growth", "Avg. volume"]
+        sector_metrics = ["Market cap", "P/E", "P/S", "P/B", "Dividend", "Sales 5Y growth", "Avg. volume"]
         for col in sector_metrics:
             if col in numeric_df.columns:
                 numeric_df[col] = (
@@ -256,6 +250,8 @@ else:
                                     if col in company_df.columns:
                                         company_df[col] = (
                                             company_df[col]
+                                            .str.replace("B", "", regex=False)
+                                            .str.replace("M", "", regex=False)
                                             .str.replace(",", "", regex=False)
                                             .str.replace("%", "", regex=False)
                                             .replace("N/A", None)
@@ -289,59 +285,6 @@ else:
                 st.warning(f"No valid numeric data available for {metric_to_plot} in the selected sectors")
         else:
             st.info("Please select at least one sector to visualize")
-
-    # Only show the single sector company view if we're filtering by a specific sector
-    # and not using the multi-sector comparison
-    if sectors_to_compare and len(sectors_to_compare) == 1:
-        st.subheader(f"Top Companies in {sectors_to_compare[0]}")
-
-        with st.spinner("Fetching company data..."):
-            company_df = get_companies_by_industry(sectors_to_compare[0])
-
-        if "Error" in company_df.columns or company_df.empty:
-            st.warning("Company data could not be loaded.")
-        else:
-            company_metrics = ["Market cap", "P/E", "Fwd P/E", "P/S", "P/B", "Dividend", "Sales 5Y growth", "Sales"]
-            for col in company_metrics:
-                if col in company_df.columns:
-                    company_df[col] = (
-                        company_df[col]
-                        .str.replace(",", "", regex=False)
-                        .str.replace("%", "", regex=False)
-                        .replace("N/A", None)
-                        .replace("-", None)
-                    )
-                    company_df[col] = pd.to_numeric(company_df[col], errors='coerce')
-
-            metric = st.selectbox(
-                "Metric to visualize for companies",
-                company_metrics
-            )
-
-            if metric in company_df.columns:
-                top_companies = (
-                    company_df
-                .sort_values(by="Market cap", ascending=False)
-                    .dropna(subset=[metric])
-                    .head(10)
-                )
-
-                if not top_companies.empty:
-                    st.write(f"Top 10 companies by market cap")
-                    st.dataframe(top_companies, use_container_width=True)
-                    st.bar_chart(
-                        data=top_companies.set_index("Ticker")[metric],
-                        use_container_width=True
-                    )
-                else:
-                    st.warning(f"No data available for metric: {metric}")
-            else:
-                st.warning(f"Selected metric '{metric}' not found in data. Please select a different metric.")
-                available_metrics = [m for m in company_metrics if m in company_df.columns]
-                if available_metrics:
-                    st.info(f"Available metrics for this sector are: {', '.join(available_metrics)}")
-                else:
-                    st.info("No metrics available for this sector.")
 
 
             
