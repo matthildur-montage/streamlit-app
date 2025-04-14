@@ -10,7 +10,7 @@ alpha_vantage_api = "FX998CWBI5L51900"
 @st.cache_data
 def get_sector_data():
     try:
-        url = "https://finviz.com/groups.ashx?g=industry&v=152&o=name"
+        url = "https://finviz.com/groups.ashx?g=industry&v=152&o=name&c=0,1,2,3,4,6,7,10,22,24,25,26"
         headers = {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -53,23 +53,28 @@ def get_sector_data():
         data = []
         for row in rows:
             cols = row.find_all("td")
-            if len(cols) < 5: 
+            if len(cols) < 9: 
                 continue
             
             # Try to extract data safely
             try:
                 sector = cols[1].text.strip() if len(cols) > 1 else "Unknown"
-                pe = cols[2].text.strip() if len(cols) > 2 else "N/A"
-                ps = cols[3].text.strip() if len(cols) > 3 else "N/A"
-                pb = cols[4].text.strip() if len(cols) > 4 else "N/A"
-                div = cols[5].text.strip() if len(cols) > 5 else "N/A"
+                marketcap = cols[2].text.strip() if len(cols) > 2 else "N/A"
+                pe = cols[3].text.strip() if len(cols) > 3 else "N/A"
+                fwd_pe = cols[4].text.strip() if len(cols) > 4 else "N/A"
+                ps = cols[5].text.strip() if len(cols) > 5 else "N/A"
+                pb = cols[6].text.strip() if len(cols) > 6 else "N/A"
+                dividend = cols[7].text.strip() if len(cols) > 7 else "N/A"
+                volume = cols[8].text.strip() if len(cols) > 8 else "N/A"
                 
                 data.append({
                     "Sector": sector,
-                    "Market cap": pe,
-                    "P/E": ps,
-                    "Dividend": pb,
-                    "Avg. volume": div,
+                    "Market cap": marketcap,
+                    "P/E": pe,
+                    "Fwd P/E": fwd_pe,
+                    "P/B": pb,
+                    "Dividend": dividend,
+                    "Avg. volume": volume
                 })
             except Exception as e:
                 st.warning(f"Error parsing row: {e}")
