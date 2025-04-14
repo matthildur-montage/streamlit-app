@@ -90,7 +90,7 @@ def get_sector_data():
         st.error(f"Error fetching sector data: {e}")
         return pd.DataFrame({"Error": [str(e)]})
         
-def get_companies_by_industry(industry, max_pages=5):
+def get_companies_by_industry(industry, max_pages=100):
     import requests
     from bs4 import BeautifulSoup
     import pandas as pd
