@@ -250,15 +250,3 @@ def get_companies_by_industry(industry, max_pages=5):
         pd.DataFrame: DataFrame containing company data
     """
     return asyncio.run(get_companies_by_industry_async(industry, max_pages))
-
-# Test function
-if __name__ == "__main__":
-    # Test with a sample industry
-    industry = "Technology"
-    df = get_companies_by_industry(industry, max_pages=2)
-    
-    if "Error" in df.columns:
-        print(f"Error: {df['Error'].iloc[0]}")
-    else:
-        print(f"Successfully fetched {len(df)} companies for {industry}")
-        print(df.head())
