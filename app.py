@@ -307,6 +307,13 @@ else:
                             else:
                                 # Process the company data
                                 company_metrics = ["Market cap", "P/E", "Fwd P/E", "P/S", "P/B", "Dividend", "Sales 5Y growth", "Sales"]
+                                # First, create a copy of the original formatted values
+                                for col in company_metrics:
+                                    if col in company_df.columns:
+                                        # Create a new column for the formatted display values
+                                        company_df[f"{col}_formatted"] = company_df[col].copy()
+                                
+                                # Then convert to numeric for sorting and calculations
                                 for col in company_metrics:
                                     if col in company_df.columns:
                                         # For columns that might have B/M suffixes (Market cap, Sales)
@@ -355,7 +362,17 @@ else:
                                     
                                     if not top_companies.empty:
                                         st.write(f"Top 10 companies by market cap")
-                                        st.dataframe(top_companies, use_container_width=True, hide_index=True)
+                                        # Create a display dataframe with formatted values
+                                        display_df = top_companies[["Ticker", "Company"]].copy()
+                                        
+                                        # Add formatted columns where available
+                                        for col in company_metrics:
+                                            if f"{col}_formatted" in top_companies.columns:
+                                                display_df[col] = top_companies[f"{col}_formatted"]
+                                            elif col in top_companies.columns:
+                                                display_df[col] = top_companies[col]
+                                        
+                                        st.dataframe(display_df, use_container_width=True, hide_index=True)
                                         
                                         st.bar_chart(data=top_companies.set_index("Ticker")[company_metric], use_container_width=True)
                                     else:
