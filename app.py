@@ -4,13 +4,11 @@ import requests
 from bs4 import BeautifulSoup
 import time
 
-# Alpha Vantage API key (not used yet but kept for future use)
-alpha_vantage_api = "FX998CWBI5L51900"
 
 @st.cache_data
 def get_sector_data():
     try:
-        url = "https://finviz.com/groups.ashx?g=industry&v=152&o=name&c=0,1,2,3,4,6,7,10,22,24,25,26"
+        url = "https://finviz.com/groups.ashx?g=industry&v=152&o=name&c=0,1,2,3,4,6,7,10,13,22,24,25,26"
         headers = {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -65,15 +63,18 @@ def get_sector_data():
                 ps = cols[5].text.strip() if len(cols) > 5 else "N/A"
                 pb = cols[6].text.strip() if len(cols) > 6 else "N/A"
                 dividend = cols[7].text.strip() if len(cols) > 7 else "N/A"
-                volume = cols[8].text.strip() if len(cols) > 8 else "N/A"
+                sales_growth = cols[8].text.strip() if len(cols) > 8 else "N/A"
+                volume = cols[9].text.strip() if len(cols) > 9 else "N/A"
                 
                 data.append({
                     "Sector": sector,
                     "Market cap": marketcap,
                     "P/E": pe,
                     "Fwd P/E": fwd_pe,
+                    "P/S": ps,
                     "P/B": pb,
                     "Dividend": dividend,
+                    "Sales 5Y growth": sales_growth,
                     "Avg. volume": volume
                 })
             except Exception as e:
@@ -95,7 +96,7 @@ def get_companies_by_industry(industry):
     import pandas as pd
 
     industry_slug = f"ind_{industry.lower().replace(' ', '')}"
-    url = f"https://finviz.com/screener.ashx?v=152&f={industry_slug}&c=1,2,7,8,9,10,75"
+    url = f"https://finviz.com/screener.ashx?v=152&f={industry_slug}&c=1,2,6,7,8,10,11,75,21,82,39,40,41,63"
     headers = {
         "User-Agent": "Mozilla/5.0"
     }
@@ -115,32 +116,46 @@ def get_companies_by_industry(industry):
     data = []
     for row in rows:
         cols = row.find_all("td")
-        if len(cols) < 7:
+        if len(cols) < 13:
             continue
 
         try:
-            print("Should be ticker: ", cols[0].text.strip())
-            print("Should be company: ", cols[1].text.strip())
-            print("Should be p/e: ", cols[2].text.strip())
-            print("Should be fwd p/e: ", cols[3].text.strip())
-            print("Should be peg: ", cols[4].text.strip())
-            print("Should be p/s: ", cols[5].text.strip())
-            print("Should be dividend: ", cols[6].text.strip())
+            ticker = cols[0].text.strip() if len(cols) > 0 else "Unknown"
+            company = cols[1].text.strip() if len(cols) > 1 else "Unknown"
+            marketcap = cols[2].text.strip() if len(cols) > 2 else "N/A"
+            pe = cols[3].text.strip() if len(cols) > 3 else "N/A"
+            fwd_pe = cols[4].text.strip() if len(cols) > 4 else "N/A"
+            ps = cols[5].text.strip() if len(cols) > 5 else "N/A"
+            pb = cols[6].text.strip() if len(cols) > 6 else "N/A"
+            dividend = cols[7].text.strip() if len(cols) > 7 else "N/A"
+            sales_growth = cols[8].text.strip() if len(cols) > 8 else "N/A"
+            sales = cols[9].text.strip() if len(cols) > 9 else "N/A"
+            gm = cols[10].text.strip() if len(cols) > 10 else "N/A"
+            opm = cols[11].text.strip() if len(cols) > 11 else "N/A"
+            pm = cols[12].text.strip() if len(cols) > 12 else "N/A"
+            avg_volume = cols[13].text.strip() if len(cols) > 13 else "N/A"
+
             data.append({
-                "Ticker": cols[0].text.strip(),
-                "Company": cols[1].text.strip(),
-                "P/E": cols[2].text.strip(),
-                "Fwd P/E": cols[3].text.strip(),
-                "PEG": cols[4].text.strip(),
-                "P/S": cols[5].text.strip(),
-                "Dividend": cols[6].text.strip(),
+                "Ticker": ticker,
+                "Company": company,
+                "Market cap": marketcap,
+                "P/E": pe,
+                "Fwd P/E": fwd_pe,
+                "P/S": ps,
+                "P/B": pb,
+                "Dividend": dividend,
+                "Sales 5Y growth": sales_growth,
+                "Sales": sales,
+                "Gross Margin": gm,
+                "Operating Margin": opm,
+                "Profit Margin": pm,
+                "Avg. volume": avg_volume
             })
         except Exception as e:
             print(f"Error parsing row: {e}")
             continue
 
     return pd.DataFrame(data)
-
 
 
 # Main app
@@ -161,10 +176,10 @@ else:
     
     # Optional: Add filtering
     if not df.empty:
-        sector_filter = st.selectbox("Filter by Sector", ["All"] + df["Sector"].tolist())
-        if sector_filter != "All":
-            filtered_df = df[df["Sector"] == sector_filter]
-            st.dataframe(filtered_df.reset_index(drop=True), use_container_width=True, hide_index=True)
+        #sector_filter = st.selectbox("Filter by Sector", ["All"] + df["Sector"].tolist())
+        #if sector_filter != "All":
+        #    filtered_df = df[df["Sector"] == sector_filter]
+        #    st.dataframe(filtered_df.reset_index(drop=True), use_container_width=True, hide_index=True)
         
         # Add visualization section
         st.subheader("Sector Comparison Visualization")
@@ -172,7 +187,7 @@ else:
         # Convert metrics to numeric values for plotting
         numeric_df = df.copy()
         # Define sector metrics
-        sector_metrics = ["P/E", "P/S", "P/B", "Dividend"]
+        sector_metrics = ["P/E", "P/S", "P/B", "Dividend", "Market cap", "Sales 5Y growth", "Avg. volume"]
         for col in sector_metrics:
             if col in numeric_df.columns:
                 numeric_df[col] = (
@@ -236,7 +251,7 @@ else:
                                 st.warning(f"Company data for {sector} could not be loaded.")
                             else:
                                 # Process the company data
-                                company_metrics = ["P/E", "Fwd P/E", "PEG", "P/S", "Dividend"]
+                                company_metrics = ["Market cap", "P/E", "Fwd P/E", "P/S", "P/B", "Dividend", "Sales 5Y growth", "Sales"]
                                 for col in company_metrics:
                                     if col in company_df.columns:
                                         company_df[col] = (
@@ -250,24 +265,19 @@ else:
                                 # Use the same metric that was selected for sector comparison if available
                                 # Otherwise, default to P/E or the first available metric
                                 company_metric = metric_to_plot
-                                if metric_to_plot not in company_df.columns or metric_to_plot == "P/B":
-                                    # P/B is not available in company data, use P/S instead
-                                    if metric_to_plot == "P/B" and "P/S" in company_df.columns:
-                                        company_metric = "P/S"
-                                        st.info(f"P/B ratio is not available for companies. Showing P/S ratio instead.")
-                                    else:
-                                        # Find the first available metric
-                                        for m in company_metrics:
-                                            if m in company_df.columns:
-                                                company_metric = m
-                                                st.info(f"{metric_to_plot} is not available for companies. Showing {company_metric} instead.")
-                                                break
+                                if metric_to_plot not in company_df.columns:
+                                    # Find the first available metric
+                                    for m in company_metrics:
+                                        if m in company_df.columns:
+                                            company_metric = m
+                                            st.info(f"{metric_to_plot} is not available for companies. Showing {company_metric} instead.")
+                                            break
                                 
                                 if company_metric in company_df.columns:
-                                    top_companies = company_df.sort_values(by=company_metric, ascending=False).dropna(subset=[company_metric]).head(10)
+                                    top_companies = company_df.sort_values(by="Market cap", ascending=False).dropna(subset=[company_metric]).head(10)
                                     
                                     if not top_companies.empty:
-                                        st.write(f"Top 10 companies by {company_metric}")
+                                        st.write(f"Top 10 companies by market cap")
                                         st.dataframe(top_companies, use_container_width=True, hide_index=True)
                                         
                                         st.bar_chart(data=top_companies.set_index("Ticker")[company_metric], use_container_width=True)
@@ -291,8 +301,7 @@ else:
         if "Error" in company_df.columns or company_df.empty:
             st.warning("Company data could not be loaded.")
         else:
-            # Convert numeric fields
-            company_metrics = ["P/E", "Fwd P/E", "PEG", "P/S", "Dividend"]
+            company_metrics = ["Market cap", "P/E", "Fwd P/E", "P/S", "P/B", "Dividend", "Sales 5Y growth", "Sales"]
             for col in company_metrics:
                 if col in company_df.columns:
                     company_df[col] = (
@@ -312,13 +321,13 @@ else:
             if metric in company_df.columns:
                 top_companies = (
                     company_df
-                    .sort_values(by=metric, ascending=False)
+                .sort_values(by="Market cap", ascending=False)
                     .dropna(subset=[metric])
                     .head(10)
                 )
 
                 if not top_companies.empty:
-                    st.write(f"Top 10 companies by {metric}")
+                    st.write(f"Top 10 companies by market cap")
                     st.dataframe(top_companies, use_container_width=True)
                     st.bar_chart(
                         data=top_companies.set_index("Ticker")[metric],
@@ -339,9 +348,16 @@ else:
     # Add some explanations
     st.markdown("""
     ### Valuation Metrics Explained
+    - **Market cap**: Market Capitalization - total value of a company's outstanding shares, indicating company size
     - **P/E Ratio**: Price-to-Earnings ratio - how much investors are willing to pay per dollar of earnings
     - **Fwd P/E**: Forward Price-to-Earnings ratio - based on forecasted earnings for the next 12 months
-    - **PEG**: Price/Earnings to Growth ratio - P/E ratio divided by earnings growth rate
     - **P/S Ratio**: Price-to-Sales ratio - company's market cap divided by its revenue
+    - **P/B Ratio**: Price-to-Book ratio - market value of a company relative to its book value
     - **Dividend**: Dividend yield - annual dividends relative to share price
+    - **Sales 5Y growth**: 5-year sales growth rate - measures company's revenue growth over 5 years
+    - **Sales**: Total revenue generated by the company
+    - **Gross Margin**: Gross profit divided by revenue - measures production efficiency
+    - **Operating Margin**: Operating income divided by revenue - measures operational efficiency
+    - **Profit Margin**: Net income divided by revenue - measures overall profitability
+    - **Avg. volume**: Average trading volume - indicates stock's liquidity and trading activity
     """)
