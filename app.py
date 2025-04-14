@@ -66,7 +66,7 @@ def get_sector_data():
                 
                 data.append({
                     "Sector": sector,
-                    "P/E": pe,
+                    "Market cap": pe,
                     "P/S": ps,
                     "P/B": pb,
                     "Dividend": div,
