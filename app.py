@@ -90,7 +90,7 @@ def get_sector_data():
         st.error(f"Error fetching sector data: {e}")
         return pd.DataFrame({"Error": [str(e)]})
         
-def get_companies_by_industry(industry, max_pages=100):
+def get_companies_by_industry(industry, max_pages=5):
     import requests
     from bs4 import BeautifulSoup
     import pandas as pd
@@ -309,15 +309,35 @@ else:
                                 company_metrics = ["Market cap", "P/E", "Fwd P/E", "P/S", "P/B", "Dividend", "Sales 5Y growth", "Sales"]
                                 for col in company_metrics:
                                     if col in company_df.columns:
-                                        company_df[col] = (
-                                            company_df[col]
-                                            .str.replace("B", "", regex=False)
-                                            .str.replace("M", "", regex=False)
-                                            .str.replace(",", "", regex=False)
-                                            .str.replace("%", "", regex=False)
-                                            .replace("N/A", None)
-                                        )
-                                        company_df[col] = pd.to_numeric(company_df[col], errors='coerce')
+                                        # For columns that might have B/M suffixes (Market cap, Sales)
+                                        if col in ["Market cap", "Sales", "Avg. volume"]:
+                                            # Convert values to numeric with proper scaling
+                                            def convert_value(val):
+                                                if isinstance(val, str):
+                                                    val = val.replace(",", "")
+                                                    if "B" in val:
+                                                        return float(val.replace("B", "")) * 1000  # Convert B to M for consistent scale
+                                                    elif "M" in val:
+                                                        return float(val.replace("M", ""))
+                                                    elif "K" in val:
+                                                        return float(val.replace("K", "")) / 1000  # Convert K to M
+                                                    else:
+                                                        try:
+                                                            return float(val) / 1000000  # Convert raw numbers to M
+                                                        except:
+                                                            return None
+                                                return val
+                                            
+                                            company_df[col] = company_df[col].apply(convert_value)
+                                        else:
+                                            # For other metrics, just remove % and convert to numeric
+                                            company_df[col] = (
+                                                company_df[col]
+                                                .str.replace(",", "", regex=False)
+                                                .str.replace("%", "", regex=False)
+                                                .replace("N/A", None)
+                                            )
+                                            company_df[col] = pd.to_numeric(company_df[col], errors='coerce')
                                 
                                 # Use the same metric that was selected for sector comparison if available
                                 # Otherwise, default to P/E or the first available metric
