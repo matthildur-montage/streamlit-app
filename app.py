@@ -47,7 +47,7 @@ def get_sector_data():
             return pd.DataFrame({"Error": ["Table not found on page"]})
         
         rows = table.find_all("tr")[1:]  # Skip header row
-        
+        print(f"DEBUG: Found {len(rows)} rows in table")
         data = []
         for row in rows:
             cols = row.find_all("td")
