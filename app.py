@@ -108,6 +108,7 @@ def get_companies_by_industry(industry, max_pages=5):
         # Calculate the starting row for the current page (Finviz uses 1-based indexing)
         # First page starts at row 1, second page at row 21, etc.
         start_row = (page - 1) * 20 + 1
+        print("Starting at row ", start_row)
         
         # Only add the row parameter if we're not on the first page
         current_url = base_url if page == 1 else f"{base_url}&r={start_row}"
@@ -116,7 +117,7 @@ def get_companies_by_industry(industry, max_pages=5):
         
         # Add a small delay to avoid rate limiting
         if page > 1:
-            time.sleep(0.5)
+            time.sleep(1)
         
         res = requests.get(current_url, headers=headers)
         if res.status_code != 200:
@@ -304,8 +305,7 @@ else:
                                 company_df = get_companies_by_industry(sector)
                             
                             if "Error" in company_df.columns:
-                                st.warning(f"Company data for {sector} could not be loaded.")
-                                print(company_df["Error"])
+                                st.warning(f"Company data for {sector} could not be loaded: {company_df["Error"]}")
                             else:
                                 # Process the company data
                                 company_metrics = ["Market cap", "P/E", "Fwd P/E", "P/S", "P/B", "Dividend", "Sales 5Y growth", "Sales"]
