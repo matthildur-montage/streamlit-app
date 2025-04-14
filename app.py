@@ -292,11 +292,11 @@ else:
 
     # Only show the single sector company view if we're filtering by a specific sector
     # and not using the multi-sector comparison
-    if sector_filter != "All" and not sectors_to_compare:
-        st.subheader(f"Top Companies in {sector_filter}")
+    if sectors_to_compare != "All" and sectors_to_compare:
+        st.subheader(f"Top Companies in {sectors_to_compare}")
 
         with st.spinner("Fetching company data..."):
-            company_df = get_companies_by_industry(sector_filter)
+            company_df = get_companies_by_industry(sectors_to_compare)
 
         if "Error" in company_df.columns or company_df.empty:
             st.warning("Company data could not be loaded.")
