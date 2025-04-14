@@ -114,7 +114,7 @@ def get_companies_by_industry(industry, max_pages=5):
         
         # Add a small delay to avoid rate limiting
         if page > 1:
-            time.sleep(1)
+            time.sleep(5)
         
         res = requests.get(current_url, headers=headers)
         if res.status_code != 200:
