@@ -253,7 +253,7 @@ else:
                                         break
                             
                             top_companies = company_df.sort_values(by="Market cap", ascending=False).dropna(subset=["Market cap"]).head(10)
-                                
+                            logger.info(f"Top companies columns: {top_companies.columns}")    
                             if not top_companies.empty:
                                 st.write(f"Top 10 companies by market cap")
                                 # Create a display dataframe with formatted values
