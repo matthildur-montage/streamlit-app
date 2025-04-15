@@ -44,7 +44,7 @@ def get_companies_by_industry_bs(industry, max_pages=5):
             
             logger.info(f"Length of cols: {len(cols)}")
             
-            if len(cols) < 15:
+            if len(cols) < 14:
                 continue
             
             all_data.append({
