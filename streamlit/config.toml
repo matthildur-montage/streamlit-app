@@ -1,0 +1,7 @@
+[server]
+headless = true
+runOnSave = true
+
+[general]
+# Force setup.sh to run during container build
+preLaunchScript = "setup.sh"
