@@ -32,6 +32,7 @@ def get_companies_by_industry_bs(industry, max_pages=5):
         
         for row in rows:
             cols = row.find_all("td")
+            logger.info(f"Got cols: {cols}")
             if len(cols) < 15:
                 continue
             
