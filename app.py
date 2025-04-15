@@ -169,10 +169,13 @@ else:
                 )
                 
                 # Display a table with the values for reference
-                metric_formatted = metric_to_plot + "_formatted"
+                display_comparison_df = comparison_df.copy()
+                for metric in sector_metrics:
+                    metric_formatted = metric + "_formatted"
+                    display_comparison_df[metric] = comparison_df[metric_formatted]
                 st.write("Comparison Values:")
                 st.dataframe(
-                    comparison_df[["Sector", metric_formatted]].reset_index(drop=True),
+                    display_comparison_df[["Sector", metric_to_plot]].reset_index(drop=True),
                     use_container_width=True,
                     hide_index=True
                 )
@@ -187,7 +190,7 @@ else:
             for sector in new_sectors:
                 with st.spinner(f"Fetching company data for {sector}..."):
                     logger.info(f"Getting new data for {sector}")
-                    st.session_state.company_data[sector] = get_companies_by_industry_bs(sector)
+                    st.session_state.company_data[sector] = get_companies_by_industry_bs(sector, 100)
             st.session_state.previous_sectors = sectors_to_compare
             # Step 2: Remove unselected sectors from memory
             for sector in list(st.session_state.company_data.keys()):
