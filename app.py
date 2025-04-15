@@ -172,7 +172,7 @@ else:
                         with tabs[i]:
                             with st.spinner(f"Fetching company data for {sector}..."):
                                 
-                                company_df = get_companies_by_industry_bs(sector, 10)
+                                company_df = get_companies_by_industry_bs(sector, 100)
                             
                             if "Error" in company_df.columns:
                                 st.warning(f"Company data for {sector} could not be loaded: {company_df['Error'].iloc[0]}")
