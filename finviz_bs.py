@@ -39,7 +39,6 @@ def get_companies_by_industry_bs(industry, max_pages=5):
             cols = row.find_all("td")
             logger.info(f"Should be ticker: {cols[1].text.strip()}")
             logger.info(f"Should be p/e: {cols[4].text.strip()}")
-            logger.info(f"Should be avg.volume: {cols[14].text.strip()}")
             
             if len(cols) < 15:
                 continue
