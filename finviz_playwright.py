@@ -106,11 +106,11 @@ async def get_companies_by_industry_async(industry, max_pages=5):
                 logger.info(f"Fetching page {current_page}, URL: {current_url}")
                 
                 # Navigate to the page
-                await page.goto(current_url, wait_until="networkidle")
+                await page.goto(current_url, wait_until="domcontentloaded")
                 
                 # Wait for the table to be visible
                 try:
-                    await page.wait_for_selector("table.screener_table", timeout=10000)
+                    await page.wait_for_selector("table.screener_table", timeout=60000)
                 except Exception as e:
                     logger.error(f"Table not found: {e}")
                     # Try to find any table that might contain the data
