@@ -42,8 +42,8 @@ def get_companies_by_industry_bs(industry, max_pages=5):
                 continue
             
             all_data.append({
-                "Ticker": cols[1].text.strip(),
-                "Company": cols[2].text.strip(),
+                "Ticker": cols[1].text.strip(),             # was 0
+                "Company": cols[2].text.strip(),            # was 1
                 "Market cap": cols[3].text.strip(),
                 "P/E": cols[4].text.strip(),
                 "Fwd P/E": cols[5].text.strip(),
@@ -58,6 +58,6 @@ def get_companies_by_industry_bs(industry, max_pages=5):
                 "Avg. volume": cols[14].text.strip()
             })
 
-        time.sleep(1)  # Be polite
+        time.sleep(5)  # Be polite
 
     return pd.DataFrame(all_data)
