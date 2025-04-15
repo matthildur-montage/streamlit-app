@@ -176,7 +176,7 @@ else:
                     use_container_width=True,
                     hide_index=True
                 )
-                df = df.drop(columns=[col for col in df.columns if "_formatted" in col])
+                #df = df.drop(columns=[col for col in df.columns if "_formatted" in col])
         else:
             st.info("Please select at least one sector to visualize")
 
