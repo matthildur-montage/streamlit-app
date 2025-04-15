@@ -179,7 +179,6 @@ else:
         if sectors_to_compare and len(sectors_to_compare) > 0:
             # Step 1: See which new sectors are selected
             new_sectors = list(set(sectors_to_compare) - set(st.session_state.previous_sectors))
-            logger.info(f"New sectors: {new_sectors}")
             for sector in new_sectors:
                 with st.spinner(f"Fetching company data for {sector}..."):
                     st.session_state.company_data[sector] = get_companies_by_industry_bs(sector)
@@ -192,7 +191,6 @@ else:
             # Step 3: Render tabs for all selected sectors
             tabs = st.tabs(sectors_to_compare)
             for i, sector in enumerate(sectors_to_compare):
-                logger.info(f"Getting and processing data for {sector}")
                 company_df = st.session_state.company_data.get(sector)
                 with tabs[i]:
                     if company_df is None or company_df.empty:
@@ -242,7 +240,7 @@ else:
                                             )
                                             company_df[col] = pd.to_numeric(company_df[col], errors='coerce')
                                         except Exception as e:
-                                            logger.info(f"Error with converting row: {company_df[col]}")
+                                            pass
                             
                             # See if we have the same metric as above for plotting
                             company_metric = metric_to_plot
