@@ -2,6 +2,11 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import time
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def get_companies_by_industry_bs(industry, max_pages=5):
     industry_slug = f"ind_{industry.lower().replace(' ', '').replace('-', '').replace('&', '')}"
