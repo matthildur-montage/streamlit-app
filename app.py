@@ -265,8 +265,6 @@ else:
                                 # Create a display dataframe with formatted values
                                 display_df = top_companies[["Ticker", "Company"]].copy()
                                 logger.info(f"Columns to display: {display_df.columns}")
-                                logger.info(f"formatted values: {display_df["Market cap_formatted"]}")
-                                logger.info(f"numerical values: {display_df["Market cap"]}")
                                 
                                 # Add formatted columns where available
                                 for col in company_metrics:
