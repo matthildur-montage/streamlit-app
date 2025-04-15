@@ -268,8 +268,10 @@ else:
                                 # Add formatted columns where available
                                 for col in company_metrics:
                                     if f"{col}_formatted" in top_companies.columns:
+                                        logger.info(f"Displaying formatted: {top_companies["Market cap_formatted"]}")
                                         display_df[col] = top_companies[f"{col}_formatted"]
                                     elif col in top_companies.columns:
+                                        logger.info(f"Notformatted: {top_companies[col]}")
                                         display_df[col] = top_companies[col]
                                 
                                 st.dataframe(display_df, use_container_width=True, hide_index=True)
