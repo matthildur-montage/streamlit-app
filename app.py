@@ -5,9 +5,6 @@ from bs4 import BeautifulSoup
 import time
 from finviz_bs import get_companies_by_industry_bs
 
-@st.cache_data(show_spinner=False)
-def get_cached_company_data(sector):
-    return get_companies_by_industry_bs(sector)
 
 @st.cache_data
 def get_sector_data():
@@ -175,9 +172,8 @@ else:
                     for i, sector in enumerate(sectors_to_compare):
                         with tabs[i]:
                             with st.spinner(f"Fetching company data for {sector}..."):
-                                
-                                company_df = get_cached_company_data(sector)
-                            
+                                company_df = get_companies_by_industry_bs(sector, 100)
+
                             if "Error" in company_df.columns:
                                 st.warning(f"Company data for {sector} could not be loaded: {company_df['Error'].iloc[0]}")
                             else:
