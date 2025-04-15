@@ -104,6 +104,7 @@ async def get_companies_by_industry_async(industry, max_pages=5):
                 current_url = base_url if current_page == 1 else f"{base_url}&r={start_row}"
                 
                 logger.info(f"Fetching page {current_page}, URL: {current_url}")
+                logger.info(f"Fetching page {current_page}, URL: {current_url}")
                 
                 # Navigate to the page
                 await page.goto(current_url, timeout=60000)
