@@ -48,20 +48,20 @@ def get_companies_by_industry_bs(industry, max_pages=5):
                 continue
             
             all_data.append({
-                "Ticker": cols[1].text.strip(),             # was 0
-                "Company": cols[2].text.strip(),            # was 1
-                "Market cap": cols[3].text.strip(),
-                "P/E": cols[4].text.strip(),
-                "Fwd P/E": cols[5].text.strip(),
-                "P/S": cols[6].text.strip(),
-                "P/B": cols[7].text.strip(),
-                "Dividend": cols[8].text.strip(),
-                "Sales 5Y growth": cols[9].text.strip(),
-                "Sales": cols[10].text.strip(),
-                "Gross Margin": cols[11].text.strip(),
-                "Operating Margin": cols[12].text.strip(),
-                "Profit Margin": cols[13].text.strip(),
-                "Avg. volume": cols[14].text.strip()
+                "Ticker": cols[0].text.strip(),             # was 0
+                "Company": cols[1].text.strip(),            # was 1
+                "Market cap": cols[2].text.strip(),
+                "P/E": cols[3].text.strip(),
+                "Fwd P/E": cols[4].text.strip(),
+                "P/S": cols[5].text.strip(),
+                "P/B": cols[6].text.strip(),
+                "Dividend": cols[7].text.strip(),
+                "Sales 5Y growth": cols[8].text.strip(),
+                "Sales": cols[9].text.strip(),
+                "Gross Margin": cols[10].text.strip(),
+                "Operating Margin": cols[11].text.strip(),
+                "Profit Margin": cols[12].text.strip(),
+                "Avg. volume": cols[13].text.strip()
             })
             
 
