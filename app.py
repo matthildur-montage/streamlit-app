@@ -122,8 +122,11 @@ else:
         numeric_df = df.copy()
         # Define sector metrics
         sector_metrics = ["Market cap", "P/E", "P/S", "P/B", "Dividend", "Sales 5Y growth", "Avg. volume"]
+        
         for col in sector_metrics:
             if col in numeric_df.columns:
+                formatted_col = col + "formatted"
+                numeric_df[formatted_col] = df[col].copy()
                 numeric_df[col] = (
                     numeric_df[col]
                     .str.replace(",", "", regex=False)
@@ -149,6 +152,7 @@ else:
         with col2:
             # Select metric to visualize - only show metrics available in sector data
             metric_to_plot = st.selectbox("Select Metric to Compare", sector_metrics)
+            metric_to_plot += "_formatted"
         
         # Create bar chart for selected sectors and metric
         if sectors_to_compare:
@@ -253,7 +257,6 @@ else:
                                         break
                             
                             top_companies = company_df.sort_values(by="Market cap", ascending=False).dropna(subset=["Market cap"]).head(10)
-                            logger.info(f"Top companies columns: {top_companies.columns}")    
                             if not top_companies.empty:
                                 st.write(f"Top 10 companies by market cap")
                                 # Create a display dataframe with formatted values
