@@ -110,7 +110,6 @@ if "Error" in df.columns:
 else:
     # Display the data
     st.dataframe(df.reset_index(drop=True), use_container_width=True, hide_index=True)
-    
     if not df.empty:
         # Add visualization section
         st.subheader("Sector Comparison Visualization")
@@ -172,15 +171,14 @@ else:
         else:
             st.info("Please select at least one sector to visualize")
 
-                
-        # Create tabs for each selected sector
-        if sectors_to_compare and len(sectors_to_compare) > 0:
-            tabs = st.tabs(sectors_to_compare)
 
+        if sectors_to_compare and len(sectors_to_compare) > 0:
+            # Step 1: See which new sectors are selected
             new_sectors = list(set(sectors_to_compare) - set(st.session_state.previous_sectors))
             for sector in new_sectors:
                 with st.spinner(f"Fetching company data for {sector}..."):
                     st.session_state.company_data[sector] = get_companies_by_industry_bs(sector)
+            st.session_state.previous_sectors = sectors_to_compare
             # Step 2: Remove unselected sectors from memory
             for sector in list(st.session_state.company_data.keys()):
                 if sector not in sectors_to_compare:
@@ -197,7 +195,6 @@ else:
                         if "Error" in company_df.columns:
                             st.warning(f"Company data for {sector} could not be loaded: {company_df['Error'].iloc[0]}")
                         else:
-                            st.session_state.previous_sectors = sectors_to_compare
                             # Process the company data
                             company_metrics = ["Market cap", "P/E", "Fwd P/E", "P/S", "P/B", "Dividend", "Sales 5Y growth", "Sales"]
                             # First, create a copy of the original formatted values
@@ -239,8 +236,7 @@ else:
                                         )
                                         company_df[col] = pd.to_numeric(company_df[col], errors='coerce')
                             
-                            # Use the same metric that was selected for sector comparison if available
-                            # Otherwise, default to P/E or the first available metric
+                            # See if we have the same metric as above for plotting
                             company_metric = metric_to_plot
                             if metric_to_plot not in company_df.columns:
                                 # Find the first available metric
@@ -250,28 +246,25 @@ else:
                                         st.info(f"{metric_to_plot} is not available for companies. Showing {company_metric} instead.")
                                         break
                             
-                            if company_metric in company_df.columns:
-                                top_companies = company_df.sort_values(by="Market cap", ascending=False).dropna(subset=[company_metric]).head(10)
+                            top_companies = company_df.sort_values(by="Market cap", ascending=False).dropna(subset=["Market cap"]).head(10)
                                 
-                                if not top_companies.empty:
-                                    st.write(f"Top 10 companies by market cap")
-                                    # Create a display dataframe with formatted values
-                                    display_df = top_companies[["Ticker", "Company"]].copy()
-                                    
-                                    # Add formatted columns where available
-                                    for col in company_metrics:
-                                        if f"{col}_formatted" in top_companies.columns:
-                                            display_df[col] = top_companies[f"{col}_formatted"]
-                                        elif col in top_companies.columns:
-                                            display_df[col] = top_companies[col]
-                                    
-                                    st.dataframe(display_df, use_container_width=True, hide_index=True)
-                                    
-                                    st.bar_chart(data=top_companies.set_index("Ticker")[company_metric], use_container_width=True)
-                                else:
-                                    st.warning(f"No valid company data available for {sector} with {company_metric} values")
+                            if not top_companies.empty:
+                                st.write(f"Top 10 companies by market cap")
+                                # Create a display dataframe with formatted values
+                                display_df = top_companies[["Ticker", "Company"]].copy()
+                                
+                                # Add formatted columns where available
+                                for col in company_metrics:
+                                    if f"{col}_formatted" in top_companies.columns:
+                                        display_df[col] = top_companies[f"{col}_formatted"]
+                                    elif col in top_companies.columns:
+                                        display_df[col] = top_companies[col]
+                                
+                                st.dataframe(display_df, use_container_width=True, hide_index=True)
+                                
+                                st.bar_chart(data=top_companies.set_index("Ticker")[company_metric], use_container_width=True)
                             else:
-                                st.warning(f"No valid metrics available for companies in {sector}")
+                                st.warning(f"No valid company data available for {sector} with {company_metric} values")
     else:
         st.warning(f"No valid numeric data available for {metric_to_plot} in the selected sectors")
         
