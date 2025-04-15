@@ -32,7 +32,7 @@ def get_companies_by_industry_bs(industry, max_pages=5):
         
         for row in rows:
             cols = row.find_all("td")
-            if len(cols) < 14:
+            if len(cols) < 15:
                 continue
             
             all_data.append({
