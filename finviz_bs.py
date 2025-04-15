@@ -37,19 +37,12 @@ def get_companies_by_industry_bs(industry, max_pages=5):
         
         for row in rows:
             cols = row.find_all("td")
-            logger.info(f"Should be ticker: {cols[1].text.strip()}")
-            logger.info(f"Should be company: {cols[2].text.strip()}")
-            logger.info(f"Should be market cap: {cols[3].text.strip()}")
-            logger.info(f"Should be p/e: {cols[4].text.strip()}")
-            
-            logger.info(f"Length of cols: {len(cols)}")
-            
             if len(cols) < 14:
                 continue
             
             all_data.append({
-                "Ticker": cols[0].text.strip(),             # was 0
-                "Company": cols[1].text.strip(),            # was 1
+                "Ticker": cols[0].text.strip(),         
+                "Company": cols[1].text.strip(),          
                 "Market cap": cols[2].text.strip(),
                 "P/E": cols[3].text.strip(),
                 "Fwd P/E": cols[4].text.strip(),
@@ -65,6 +58,6 @@ def get_companies_by_industry_bs(industry, max_pages=5):
             })
             
 
-        time.sleep(5)  # Be polite
+        time.sleep(1)  # Be polite
 
     return pd.DataFrame(all_data)
