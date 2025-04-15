@@ -169,7 +169,7 @@ else:
                 )
                 
                 # Display a table with the values for reference
-                metric_formatted = metric_to_plot += "_formatted"
+                metric_formatted = metric_to_plot + "_formatted"
                 st.write("Comparison Values:")
                 st.dataframe(
                     comparison_df[["Sector", metric_formatted]].reset_index(drop=True),
