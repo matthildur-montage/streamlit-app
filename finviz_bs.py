@@ -57,7 +57,9 @@ def get_companies_by_industry_bs(industry, max_pages=5):
                 "Avg. volume": cols[13].text.strip()
             })
             
-
+        # If this page had fewer than 20 rows, it's the last one
+        if len(rows) < 20:
+            break
         time.sleep(1)  # Be polite
 
     return pd.DataFrame(all_data)
