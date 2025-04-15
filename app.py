@@ -264,7 +264,6 @@ else:
                                 st.write(f"Top 10 companies by market cap")
                                 # Create a display dataframe with formatted values
                                 display_df = top_companies[["Ticker", "Company"]].copy()
-                                logger.info(f"Columns to display: {display_df.columns}")
                                 
                                 # Add formatted columns where available
                                 for col in company_metrics:
