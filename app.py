@@ -152,12 +152,13 @@ else:
         with col2:
             # Select metric to visualize - only show metrics available in sector data
             metric_to_plot = st.selectbox("Select Metric to Compare", sector_metrics)
-            metric_to_plot += "_formatted"
         
         # Create bar chart for selected sectors and metric
         if sectors_to_compare:
             # Filter the dataframe for selected sectors
             comparison_df = numeric_df[numeric_df["Sector"].isin(sectors_to_compare)]
+            logger.info(f"numeric_df columns: {numeric_df.columns}")
+            logger.info(f"compairson_df columns: {comparison_df.columns}")
             
             if not comparison_df.empty and not comparison_df[metric_to_plot].isna().all():
                 # Sort by the selected metric for better visualization
