@@ -125,7 +125,7 @@ else:
         
         for col in sector_metrics:
             if col in numeric_df.columns:
-                formatted_col = col + "formatted"
+                formatted_col = col + "_formatted"
                 numeric_df[formatted_col] = df[col].copy()
                 numeric_df[col] = (
                     numeric_df[col]
@@ -157,8 +157,6 @@ else:
         if sectors_to_compare:
             # Filter the dataframe for selected sectors
             comparison_df = numeric_df[numeric_df["Sector"].isin(sectors_to_compare)]
-            logger.info(f"numeric_df columns: {numeric_df.columns}")
-            logger.info(f"compairson_df columns: {comparison_df.columns}")
             
             if not comparison_df.empty and not comparison_df[metric_to_plot].isna().all():
                 # Sort by the selected metric for better visualization
@@ -171,9 +169,10 @@ else:
                 )
                 
                 # Display a table with the values for reference
+                metric_formatted = metric_to_plot += "_formatted"
                 st.write("Comparison Values:")
                 st.dataframe(
-                    comparison_df[["Sector", metric_to_plot]].reset_index(drop=True),
+                    comparison_df[["Sector", metric_formatted]].reset_index(drop=True),
                     use_container_width=True,
                     hide_index=True
                 )
