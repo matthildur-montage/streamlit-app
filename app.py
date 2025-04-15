@@ -4,7 +4,11 @@ import requests
 from bs4 import BeautifulSoup
 import time
 from finviz_bs import get_companies_by_industry_bs
+import logging
 
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 @st.cache_data
 def get_sector_data():
@@ -175,6 +179,7 @@ else:
         if sectors_to_compare and len(sectors_to_compare) > 0:
             # Step 1: See which new sectors are selected
             new_sectors = list(set(sectors_to_compare) - set(st.session_state.previous_sectors))
+            logger.info(f"New sectors: {new_sectors}")
             for sector in new_sectors:
                 with st.spinner(f"Fetching company data for {sector}..."):
                     st.session_state.company_data[sector] = get_companies_by_industry_bs(sector)
@@ -187,6 +192,7 @@ else:
             # Step 3: Render tabs for all selected sectors
             tabs = st.tabs(sectors_to_compare)
             for i, sector in enumerate(sectors_to_compare):
+                logger.info(f"Getting and processing data for {sector}")
                 company_df = st.session_state.company_data.get(sector)
                 with tabs[i]:
                     if company_df is None or company_df.empty:
@@ -224,17 +230,19 @@ else:
                                                     except:
                                                         return None
                                             return val
-                                        
                                         company_df[col] = company_df[col].apply(convert_value)
                                     else:
                                         # For other metrics, just remove % and convert to numeric
-                                        company_df[col] = (
-                                            company_df[col]
-                                            .str.replace(",", "", regex=False)
-                                            .str.replace("%", "", regex=False)
-                                            .replace("N/A", None)
-                                        )
-                                        company_df[col] = pd.to_numeric(company_df[col], errors='coerce')
+                                        try:
+                                            company_df[col] = (
+                                                company_df[col]
+                                                .str.replace(",", "", regex=False)
+                                                .str.replace("%", "", regex=False)
+                                                .replace("N/A", None)
+                                            )
+                                            company_df[col] = pd.to_numeric(company_df[col], errors='coerce')
+                                        except Exception as e:
+                                            logger.info(f"Error with converting row: {company_df[col]}")
                             
                             # See if we have the same metric as above for plotting
                             company_metric = metric_to_plot
