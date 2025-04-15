@@ -106,7 +106,7 @@ async def get_companies_by_industry_async(industry, max_pages=5):
                 logger.info(f"Fetching page {current_page}, URL: {current_url}")
                 
                 # Navigate to the page
-                await page.goto(current_url, wait_until="domcontentloaded")
+                await page.goto(current_url, timeout=60000)
                 
                 # Wait for the table to be visible
                 try:
