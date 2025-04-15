@@ -186,7 +186,9 @@ else:
             new_sectors = list(set(sectors_to_compare) - set(st.session_state.previous_sectors))
             for sector in new_sectors:
                 with st.spinner(f"Fetching company data for {sector}..."):
+                    logger.info(f"Getting new data for {sector}")
                     st.session_state.company_data[sector] = get_companies_by_industry_bs(sector)
+                    logger.info(f"Fresh new data columns: {st.session_state.company_data[sector].columns}")
             st.session_state.previous_sectors = sectors_to_compare
             # Step 2: Remove unselected sectors from memory
             for sector in list(st.session_state.company_data.keys()):
@@ -197,6 +199,7 @@ else:
             tabs = st.tabs(sectors_to_compare)
             for i, sector in enumerate(sectors_to_compare):
                 company_df = st.session_state.company_data.get(sector)
+                logger.info(f"company_df columns: {company_df.columns}")
                 with tabs[i]:
                     if company_df is None or company_df.empty:
                         st.warning(f"No company data available for {sector}")
@@ -211,7 +214,8 @@ else:
                                 if col in company_df.columns:
                                     # Create a new column for the formatted display values
                                     company_df[f"{col}_formatted"] = company_df[col].copy()
-                            
+                            logger.info(f"After adding formatted columns: {company_df.columns}")
+                            logger.info(f"MC Values: {company_df["Market cap_formatted"]}")
                             # Then convert to numeric for sorting and calculations
                             for col in company_metrics:
                                 if col in company_df.columns and "formatted" not in col:
@@ -248,6 +252,7 @@ else:
                                             pass
                             
                             # See if we have the same metric as above for plotting
+                            logger.info(f"After processing numerical: {company_df.columns}, {company_df["Market cap_formatted"]}, {company_df["Market cap"]}")
                             company_metric = metric_to_plot
                             if metric_to_plot not in company_df.columns:
                                 # Find the first available metric
