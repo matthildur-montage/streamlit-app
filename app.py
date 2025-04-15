@@ -262,6 +262,7 @@ else:
                                 # Add formatted columns where available
                                 for col in company_metrics:
                                     if f"{col}_formatted" in top_companies.columns:
+                                        logger.info(f"Displaying formatted: {col}")
                                         display_df[col] = top_companies[f"{col}_formatted"]
                                     elif col in top_companies.columns:
                                         display_df[col] = top_companies[col]
