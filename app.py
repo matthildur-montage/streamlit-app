@@ -209,7 +209,7 @@ else:
                             
                             # Then convert to numeric for sorting and calculations
                             for col in company_metrics:
-                                if col in company_df.columns:
+                                if col in company_df.columns and "formatted" not in col:
                                     # For columns that might have B/M suffixes (Market cap, Sales)
                                     if col in ["Market cap", "Sales", "Avg. volume"]:
                                         # Convert values to numeric with proper scaling
