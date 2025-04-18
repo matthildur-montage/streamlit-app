@@ -189,7 +189,6 @@ else:
             new_sectors = list(set(sectors_to_compare) - set(st.session_state.previous_sectors))
             for sector in new_sectors:
                 with st.spinner(f"Fetching company data for {sector}..."):
-                    logger.info(f"Getting new data for {sector}")
                     st.session_state.company_data[sector] = get_companies_by_industry_bs(sector, 100)
             st.session_state.previous_sectors = sectors_to_compare
             # Step 2: Remove unselected sectors from memory
@@ -204,8 +203,8 @@ else:
                     # Create formatted columns for all metrics if they don't exist
                     company_metrics = ["Market cap", "P/E", "Fwd P/E", "P/S", "P/B", "Dividend", "Sales 5Y growth", "Sales"]
                     for col in company_metrics:
-                        if col in company_df.columns and f"{col}_formatted" not in company_df.columns:
-                            company_df[f"{col}_formatted"] = company_df[col].copy()
+                        if col in company_df.columns and f"{col}_numerical" not in company_df.columns:
+                            company_df[f"{col}_numerical"] = company_df[col].copy()
                     st.session_state.company_data[sector] = company_df
             
             # Step 3: Render tabs for all selected sectors
@@ -225,12 +224,11 @@ else:
                             for col in company_metrics:
                                 if col in company_df.columns:
                                     # Create a new column for the formatted display values
-                                    company_df[f"{col}_formatted"] = company_df[col].copy()
-                            logger.info(f"After adding formatted columns: {company_df.columns}")
-                            logger.info(f"MC Values: {company_df["Market cap_formatted"]}")
+                                    company_df[f"{col}_numerical"] = company_df[col].copy()
                             # Then convert to numeric for sorting and calculations
                             for col in company_metrics:
-                                if col in company_df.columns and "formatted" not in col:
+                                if col in company_df.columns:
+                                    numerical_col = col + "_numerical"
                                     # For columns that might have B/M suffixes (Market cap, Sales)
                                     if col in ["Market cap", "Sales", "Avg. volume"]:
                                         # Convert values to numeric with proper scaling
@@ -249,17 +247,17 @@ else:
                                                     except:
                                                         return None
                                             return val
-                                        company_df[col] = company_df[col].apply(convert_value)
+                                        company_df[numerical_col] = company_df[col].apply(convert_value)
                                     else:
                                         # For other metrics, just remove % and convert to numeric
                                         try:
-                                            company_df[col] = (
+                                            company_df[numerical_col] = (
                                                 company_df[col]
                                                 .str.replace(",", "", regex=False)
                                                 .str.replace("%", "", regex=False)
                                                 .replace("N/A", None)
                                             )
-                                            company_df[col] = pd.to_numeric(company_df[col], errors='coerce')
+                                            company_df[numerical_col] = pd.to_numeric(company_df[numerical_col], errors='coerce')
                                         except Exception as e:
                                             pass
                             
@@ -273,7 +271,8 @@ else:
                                         st.info(f"{metric_to_plot} is not available for companies. Showing {company_metric} instead.")
                                         break
                             
-                            top_companies = company_df.sort_values(by="Market cap", ascending=False).dropna(subset=["Market cap"]).head(10)
+                            # Sort by the numerical version of Market cap
+                            top_companies = company_df.sort_values(by="Market cap_numerical", ascending=False).dropna(subset=["Market cap_numerical"]).head(10)
                             if not top_companies.empty:
                                 st.write(f"Top 10 companies by market cap")
                                 # Create a display dataframe with formatted values
@@ -281,16 +280,17 @@ else:
                                 
                                 # Add formatted columns where available
                                 for col in company_metrics:
-                                    if f"{col}_formatted" in top_companies.columns:
-                                        logger.info(f"Displaying formatted: {top_companies["Market cap_formatted"]}")
-                                        display_df[col] = top_companies[f"{col}_formatted"]
+                                    if f"{col}" in top_companies.columns:
+                                        logger.info(f"Displaying formatted: {top_companies['Market cap']}")
+                                        display_df[col] = top_companies[f"{col}"]
                                     elif col in top_companies.columns:
-                                        logger.info(f"Notformatted: {top_companies[col]}")
                                         display_df[col] = top_companies[col]
                                 
                                 st.dataframe(display_df, use_container_width=True, hide_index=True)
                                 
-                                st.bar_chart(data=top_companies.set_index("Ticker")[company_metric], use_container_width=True)
+                                # Use the numerical version of the metric for the bar chart
+                                chart_metric = company_metric + "_numerical" if company_metric + "_numerical" in top_companies.columns else company_metric
+                                st.bar_chart(data=top_companies.set_index("Ticker")[chart_metric], use_container_width=True)
                             else:
                                 st.warning(f"No valid company data available for {sector} with {company_metric} values")
     else:
