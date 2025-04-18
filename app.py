@@ -196,7 +196,18 @@ else:
             for sector in list(st.session_state.company_data.keys()):
                 if sector not in sectors_to_compare:
                     del st.session_state.company_data[sector]
-                    
+            
+            # Step 2.5: Ensure all sectors have formatted columns
+            for sector in sectors_to_compare:
+                company_df = st.session_state.company_data.get(sector)
+                if company_df is not None and not company_df.empty and "Error" not in company_df.columns:
+                    # Create formatted columns for all metrics if they don't exist
+                    company_metrics = ["Market cap", "P/E", "Fwd P/E", "P/S", "P/B", "Dividend", "Sales 5Y growth", "Sales"]
+                    for col in company_metrics:
+                        if col in company_df.columns and f"{col}_formatted" not in company_df.columns:
+                            company_df[f"{col}_formatted"] = company_df[col].copy()
+                    st.session_state.company_data[sector] = company_df
+            
             # Step 3: Render tabs for all selected sectors
             tabs = st.tabs(sectors_to_compare)
             for i, sector in enumerate(sectors_to_compare):
